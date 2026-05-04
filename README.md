@@ -29,7 +29,7 @@ If the output is below `10.0.x`, install the latest SDK from <https://dotnet.mic
 ### 1. Clone the repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/mshaikh90/fakestoreAPITests.git
 cd C#RestSharpNUnit
 ```
 
