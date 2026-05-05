@@ -15,11 +15,7 @@ public sealed class CartsClient : ApiClientBase
         : base(options, loggerFactory)
     {
     }
-
-    public CartsClient(RestClient client)
-        : base(client)
-    {
-    }
+    
 
     public Task<ApiResponse<List<Cart>>> GetAllAsync(CancellationToken cancellationToken = default) =>
         GetAsync<List<Cart>>(CartsResource, cancellationToken);

@@ -16,11 +16,6 @@ public sealed class ProductsClient : ApiClientBase
     {
     }
 
-    public ProductsClient(RestClient client)
-        : base(client)
-    {
-    }
-
     public Task<ApiResponse<List<Product>>> GetAllAsync(CancellationToken cancellationToken = default) =>
         GetAsync<List<Product>>(ProductsResource, cancellationToken);
 

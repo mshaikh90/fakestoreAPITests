@@ -81,6 +81,12 @@ public sealed class CartTests : ApiTestBase
         Scenario.Step("Verify the returned cart reflects the updated quantity");
         Assert.That(updatedCart.Products[0].Quantity, Is.EqualTo(5),
             $"{updateResponse.Operation} did not apply the updated quantity.");
+        
+        Scenario.Step("Fetch cart to confirm change persisted");
+        var cartResponse = await Carts.GetByIdAsync(created.Id);
+        var fetchedCart = cartResponse.ShouldHaveData(HttpStatusCode.OK);
+        Assert.That(fetchedCart.Products[0].Quantity, Is.EqualTo(5),
+            $"GET /carts/{created.Id} did not reflect the updated quantity.");  
     }
 
     [Test]

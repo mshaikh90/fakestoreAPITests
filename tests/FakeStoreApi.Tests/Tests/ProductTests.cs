@@ -7,7 +7,6 @@ namespace FakeStoreApi.Tests.Tests;
 
 [TestFixture]
 [Category("Product")]
-[Category("Cart")]
 public sealed class ProductTests : ApiTestBase
 {
     [TestCaseSource(typeof(ProductTestData), nameof(ProductTestData.ValidProductRequests))]
@@ -87,8 +86,53 @@ public sealed class ProductTests : ApiTestBase
         });
     }
 
+      [Test]
+    public async Task DeleteHighestRatedProduct_RemovesProductFromGetByIdAndProductList()
+    {
+        Scenario.Step("Fetch all products from the API");
+        var products = (await Products.GetAllAsync())
+            .ShouldHaveData(HttpStatusCode.OK);
+
+        Assert.That(products, Is.Not.Empty, "GET /products returned no products.");
+
+        Scenario.Step("Select the product with the highest rating");
+        var productToDelete = products.HighestRated();
+
+        Assert.That(productToDelete, Is.Not.Null, "GET /products returned no products with ratings.");
+        var productId = productToDelete!.Id;
+
+        TestContext.Out.WriteLine(
+            $"Lowest rated product: [{productId}] {productToDelete.Title} with rating {productToDelete.Rating!.Rate}");
+
+        Scenario.Step("Delete the selected product");
+        var deleteResponse = await Products.DeleteAsync(productId);
+        var deletedProduct = deleteResponse.ShouldHaveData(HttpStatusCode.OK);
+
+        Assert.That(deletedProduct.Id, Is.EqualTo(productId),
+            $"{deleteResponse.Operation} returned the wrong product ID.");
+
+        Scenario.Step("Request the deleted product by ID");
+        var getDeletedProductResponse = await Products.GetByIdAsync(productId);
+
+        Scenario.Step("Fetch all products again after the delete");
+        var productsAfterDeleteResponse = await Products.GetAllAsync();
+        var productsAfterDelete = productsAfterDeleteResponse.ShouldHaveData(HttpStatusCode.OK);
+
+        Scenario.Step("Verify the deleted product can no longer be retrieved or listed");
+        Assert.Multiple(() =>
+        {
+            getDeletedProductResponse.ShouldHaveStatus(HttpStatusCode.NotFound);
+
+            Assert.That(getDeletedProductResponse.RawContent, Is.Not.Null.And.Not.Empty,
+                $"{getDeletedProductResponse.Operation} should return an error response body.");
+
+            Assert.That(productsAfterDelete.Select(product => product.Id), Does.Not.Contain(productId),
+                $"{productsAfterDeleteResponse.Operation} after delete still returned product ID {productId}.");
+        });
+    }
+
     [Test]
-    public async Task GeneratedProductIDDoesNotCurrentlyExist()
+    public async Task GeneratedProductIdDoesNotCurrentlyExist()
     {
         Scenario.Step("Fetch all existing products");
         var existingProducts = (await Products.GetAllAsync())
