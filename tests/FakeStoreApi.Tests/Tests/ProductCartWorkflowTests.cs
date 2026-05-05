@@ -1,4 +1,5 @@
 using System.Net;
+using FakeStoreApi.Core.Models;
 using FakeStoreApi.Tests.Support;
 using FakeStoreApi.Tests.TestData;
 

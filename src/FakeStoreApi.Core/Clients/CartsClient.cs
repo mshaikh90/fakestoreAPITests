@@ -9,10 +9,7 @@ namespace FakeStoreApi.Core.Clients;
 public sealed class CartsClient : ApiClientBase
 {
     private const string CartsResource = "/carts";
-
-    public CartsClient()
-    {
-    }
+    
 
     public CartsClient(ApiClientOptions options, ILoggerFactory? loggerFactory = null)
         : base(options, loggerFactory)

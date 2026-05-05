@@ -38,4 +38,17 @@ public static class ProductTestData
         foreach (var product in ProductsToCreate())
             yield return new TestCaseData(product).SetName($"Create product - {product.Title}");
     }
+
+    /// <summary>
+    /// A ready-made request used by tests that only need to verify ID uniqueness.
+    /// Using a named method keeps test bodies free of boilerplate object initialisation.
+    /// </summary>
+    public static ProductRequest UniqueIdVerificationProduct() => new()
+    {
+        Title       = "Unique ID Verification Product",
+        Price       = 19.99m,
+        Description = "Used to verify that POST /products returns a freshly assigned ID.",
+        Category    = "electronics",
+        Image       = "https://example.com/images/unique-id-verification-product.png"
+    };
 }

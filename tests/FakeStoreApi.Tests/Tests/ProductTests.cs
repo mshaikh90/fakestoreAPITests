@@ -7,10 +7,10 @@ namespace FakeStoreApi.Tests.Tests;
 
 [TestFixture]
 [Category("Product")]
+[Category("Cart")]
 public sealed class ProductTests : ApiTestBase
 {
     [TestCaseSource(typeof(ProductTestData), nameof(ProductTestData.ValidProductRequests))]
-    [Category("Product")]
     public async Task CreateProduct_CanBeRetrievedByReturnedId_WithMatchingDetails(ProductRequest request)
     {
         Scenario.Step("Create a product using the test case data");
@@ -23,7 +23,7 @@ public sealed class ProductTests : ApiTestBase
             Assert.That(createdProduct.Id, Is.GreaterThan(0),
                 $"{createResponse.Operation} did not return a valid ID for '{request.Title}'.");
 
-            AssertProductMatches(request, createdProduct, createResponse.Operation);
+            createdProduct.ShouldMatchRequest(request, createResponse.Operation);
         });
 
         TestContext.Out.WriteLine($"Created '{request.Title}' with returned ID: {createdProduct.Id}");
@@ -38,12 +38,11 @@ public sealed class ProductTests : ApiTestBase
             Assert.That(retrievedProduct.Id, Is.EqualTo(createdProduct.Id),
                 $"{retrievedResponse.Operation} returned the wrong product ID.");
 
-            AssertProductMatches(request, retrievedProduct, retrievedResponse.Operation);
+            retrievedProduct.ShouldMatchRequest(request, retrievedResponse.Operation);
         });
     }
 
     [Test]
-    [Category("Product")]
     public async Task DeleteLowestRatedProduct_RemovesProductFromGetByIdAndProductList()
     {
         Scenario.Step("Fetch all products from the API");
@@ -89,7 +88,6 @@ public sealed class ProductTests : ApiTestBase
     }
 
     [Test]
-    [Category("Product")]
     public async Task GeneratedProductIDDoesNotCurrentlyExist()
     {
         Scenario.Step("Fetch all existing products");
@@ -103,15 +101,7 @@ public sealed class ProductTests : ApiTestBase
         TestContext.Out.WriteLine($"Existing product IDs: [{string.Join(", ", existingProductIds)}]");
 
         Scenario.Step("Create a new product");
-        var newProductRequest = new ProductRequest
-        {
-            Title = "Unique ID Verification Product",
-            Price = 19.99m,
-            Description = "Used to verify that POST /products returns a freshly assigned ID.",
-            Category = "electronics",
-            Image = "https://example.com/images/unique-id-verification-product.png"
-        };
-
+        var newProductRequest = ProductTestData.UniqueIdVerificationProduct();
         var createResponse = await Products.CreateAsync(newProductRequest);
         var createdProduct = createResponse.ShouldHaveData(HttpStatusCode.Created);
 
@@ -120,15 +110,5 @@ public sealed class ProductTests : ApiTestBase
         Scenario.Step("Verify the new product ID is not present in the previously captured list");
         Assert.That(existingProductIds, Does.Not.Contain(createdProduct.Id),
             $"{createResponse.Operation} returned ID {createdProduct.Id}, which already exists in the product list.");
-    }
-
-    private static void AssertProductMatches(ProductRequest expected, Product actual, string operation)
-    {
-        Assert.That(actual.Title, Is.EqualTo(expected.Title), $"{operation} returned the wrong title.");
-        Assert.That(actual.Price, Is.EqualTo(expected.Price), $"{operation} returned the wrong price.");
-        Assert.That(actual.Description, Is.EqualTo(expected.Description),
-            $"{operation} returned the wrong description.");
-        Assert.That(actual.Category, Is.EqualTo(expected.Category), $"{operation} returned the wrong category.");
-        Assert.That(actual.Image, Is.EqualTo(expected.Image), $"{operation} returned the wrong image.");
     }
 }
